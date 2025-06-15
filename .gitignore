@@ -28,6 +28,9 @@ go.work.sum
 # sqlite storage files
 storage/*
 
+# swagger docs files
+docs/*
+
 ### VisualStudioCode ###
 .vscode/*
 

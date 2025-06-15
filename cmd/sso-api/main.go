@@ -16,6 +16,15 @@ const (
 	envProd  = "prod"
 )
 
+// @title SSO API
+// @version 1.0
+// @description API server for SSO
+
+// @securitydefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
+// @BasePath /
 func main() {
 	cfg := config.MustLoad()
 
