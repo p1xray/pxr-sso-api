@@ -3,8 +3,11 @@ package main
 import (
 	"log/slog"
 	"os"
+	"os/signal"
+	"pxr-sso-api/internal/app"
 	"pxr-sso-api/internal/config"
 	"pxr-sso-api/internal/lib/logger/handlers/slogpretty"
+	"syscall"
 )
 
 const (
@@ -19,6 +22,21 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application", slog.Any("config", cfg))
+
+	application := app.New(log, cfg)
+
+	go func() {
+		application.MustRun()
+	}()
+
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	<-stop
+
+	application.GracefulStop()
+	log.Info("application stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
