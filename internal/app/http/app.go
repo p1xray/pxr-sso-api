@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	controller "pxr-sso-api/internal/controller/http"
 )
 
 // App is an HTTP server application.
@@ -15,9 +16,11 @@ type App struct {
 
 // New creates new instance of HTTP server application.
 func New(log *slog.Logger, port int) *App {
+	handlers := controller.New()
+
 	httpServer := &http.Server{
-		Addr: fmt.Sprintf(":%d", port),
-		// TODO: add handlers
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: handlers.Init(),
 	}
 
 	return &App{
