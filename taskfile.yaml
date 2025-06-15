@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+  dev:
+    aliases:
+      - dev
+    desc: 'run SSO API app'
+    cmds:
+      - go run ./cmd/sso-api/main.go
