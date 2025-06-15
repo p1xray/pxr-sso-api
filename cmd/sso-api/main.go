@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"pxr-sso-api/internal/config"
+)
 
 func main() {
-	fmt.Println("SSO API")
+	cfg := config.MustLoad()
+
+	fmt.Printf("SSO API config: %v", cfg)
 }

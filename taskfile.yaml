@@ -4,6 +4,6 @@ tasks:
   dev:
     aliases:
       - dev
-    desc: 'run SSO API app'
+    desc: 'run SSO API app with local config'
     cmds:
-      - go run ./cmd/sso-api/main.go
+      - go run ./cmd/sso-api/main.go --config=./config/local.yaml
