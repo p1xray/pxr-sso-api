@@ -22,6 +22,7 @@ func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
 		auth.POST("/login", ar.login)
 		auth.POST("/register", ar.register)
 		auth.POST("/refresh-tokens", ar.refreshTokens)
+		auth.POST("/logout", ar.logout)
 	}
 }
 
@@ -184,4 +185,43 @@ func (a *Routes) refreshTokens(c *gin.Context) {
 	}
 
 	server.SuccessResponse(c, response)
+}
+
+// Logout.
+//
+//	@Summary			Logout
+//	@Description		Logout
+//	@Tags				Auth
+//	@Id 				logout
+//	@Accept				json
+//	@Produce			json
+//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
+//	@Param				input body LogoutInput true "Input parameters for user logout."
+//	@Success			200	{object}	server.dataResponse[bool]
+//	@Failure			500	{object}	server.dataResponse[bool]
+//	@Router				/api/v1/auth/logout [post]
+func (a *Routes) logout(c *gin.Context) {
+	inp, err := server.GetInputFromBody[LogoutInput](c)
+	if err != nil {
+		server.ErrorResponse[bool](c, err.Error())
+		return
+	}
+
+	grpcLogoutRequest := &ssopb.LogoutRequest{
+		RefreshToken: inp.RefreshToken,
+		ClientCode:   inp.ClientCode,
+	}
+
+	grpcLogoutResponse, err := a.grpcAuthClient.Logout(
+		c.Request.Context(),
+		grpcLogoutRequest)
+	if err != nil {
+		// TODO: check error from gRPC server and return invalid credentials error
+
+		server.ErrorResponse[bool](c, err.Error())
+		return
+	}
+
+	success := grpcLogoutResponse.GetSuccess()
+	server.SuccessResponse[bool](c, &success)
 }

@@ -55,3 +55,9 @@ type RefreshTokensOutput struct {
 	AccessToken  string `json:"access_token" binding:"required"`  // Access token.
 	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
 } // @name RefreshTokensOutput
+
+// LogoutInput is input model of user logout request.
+type LogoutInput struct {
+	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
+	ClientCode   string `json:"client_code" binding:"required"`   // Client code.
+} // @name LogoutInput
