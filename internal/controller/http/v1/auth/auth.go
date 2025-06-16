@@ -21,6 +21,7 @@ func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
 	{
 		auth.POST("/login", ar.login)
 		auth.POST("/register", ar.register)
+		auth.POST("/refresh-tokens", ar.refreshTokens)
 	}
 }
 
@@ -121,7 +122,7 @@ func (a *Routes) register(c *gin.Context) {
 		Issuer:        server.GetHost(c),
 	}
 
-	grpcLoginResponse, err := a.grpcAuthClient.Register(
+	grpcRegisterResponse, err := a.grpcAuthClient.Register(
 		c.Request.Context(),
 		grpcRegisterRequest)
 	if err != nil {
@@ -132,8 +133,54 @@ func (a *Routes) register(c *gin.Context) {
 	}
 
 	response := &RegisterOutput{
-		AccessToken:  grpcLoginResponse.GetAccessToken(),
-		RefreshToken: grpcLoginResponse.GetRefreshToken(),
+		AccessToken:  grpcRegisterResponse.GetAccessToken(),
+		RefreshToken: grpcRegisterResponse.GetRefreshToken(),
+	}
+
+	server.SuccessResponse(c, response)
+}
+
+// Refresh tokens.
+//
+//	@Summary			Refresh tokens
+//	@Description		Refresh tokens
+//	@Tags				Auth
+//	@Id 				refreshTokens
+//	@Accept				json
+//	@Produce			json
+//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
+//	@Param				input body RefreshTokensInput true "Input parameters for refresh tokens."
+//	@Success			200	{object}	server.dataResponse[RefreshTokensOutput]
+//	@Failure			500	{object}	server.dataResponse[RefreshTokensOutput]
+//	@Router				/api/v1/auth/refresh-tokens [post]
+func (a *Routes) refreshTokens(c *gin.Context) {
+	inp, err := server.GetInputFromBody[RefreshTokensInput](c)
+	if err != nil {
+		server.ErrorResponse[RefreshTokensOutput](c, err.Error())
+		return
+	}
+
+	grpcRefreshTokensRequest := &ssopb.RefreshTokensRequest{
+		RefreshToken: inp.RefreshToken,
+		ClientCode:   inp.ClientCode,
+		UserAgent:    server.GetUserAgent(c),
+		Fingerprint:  server.GetFingerprint(c),
+		Issuer:       server.GetHost(c),
+	}
+
+	grpcRefreshTokensResponse, err := a.grpcAuthClient.RefreshTokens(
+		c.Request.Context(),
+		grpcRefreshTokensRequest)
+	if err != nil {
+		// TODO: check error from gRPC server and return invalid credentials error
+
+		server.ErrorResponse[RefreshTokensOutput](c, err.Error())
+		return
+	}
+
+	response := &RefreshTokensOutput{
+		AccessToken:  grpcRefreshTokensResponse.GetAccessToken(),
+		RefreshToken: grpcRefreshTokensResponse.GetRefreshToken(),
 	}
 
 	server.SuccessResponse(c, response)

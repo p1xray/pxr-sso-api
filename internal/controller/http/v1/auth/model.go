@@ -43,3 +43,15 @@ type RegisterOutput struct {
 	AccessToken  string `json:"access_token" binding:"required"`  // Access token.
 	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
 } // @name RegisterOutput
+
+// RefreshTokensInput is input model of refresh tokens request.
+type RefreshTokensInput struct {
+	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
+	ClientCode   string `json:"client_code" binding:"required"`   // Client code.
+} // @name RefreshTokensInput
+
+// RefreshTokensOutput is output model of refresh tokens request.
+type RefreshTokensOutput struct {
+	AccessToken  string `json:"access_token" binding:"required"`  // Access token.
+	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
+} // @name RefreshTokensOutput
