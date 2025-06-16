@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	grpcapp "pxr-sso-api/internal/app/grpc"
 	httpapp "pxr-sso-api/internal/app/http"
 	"pxr-sso-api/internal/config"
 	"pxr-sso-api/internal/lib/logger/sl"
@@ -22,11 +23,14 @@ func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) *App {
-	httpapp := httpapp.New(log, cfg.Server.Port)
+	grpcApp := grpcapp.New(log, cfg)
+	grpcClient := grpcApp.CreateGRPCClient()
+
+	httpApp := httpapp.New(log, cfg.Server.Port, grpcClient)
 
 	return &App{
 		log:     log,
-		httpApp: httpapp,
+		httpApp: httpApp,
 	}
 }
 

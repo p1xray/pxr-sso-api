@@ -1,3 +1,6 @@
 env: 'local'
 server:
   port: 6003
+grpc:
+  auth:
+    address: 'localhost:6004'

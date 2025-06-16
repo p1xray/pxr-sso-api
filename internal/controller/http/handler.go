@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	grpcclient "pxr-sso-api/internal/client/grpc"
 	v1 "pxr-sso-api/internal/controller/http/v1"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -11,11 +12,12 @@ import (
 
 // Handler is handler for http server requests.
 type Handler struct {
+	grpcClient *grpcclient.GRPCClient
 }
 
 // New creates a new http server request handler.
-func New() *Handler {
-	return &Handler{}
+func New(grpcClient *grpcclient.GRPCClient) *Handler {
+	return &Handler{grpcClient: grpcClient}
 }
 
 // Init initializes the http server request handler.
@@ -29,7 +31,7 @@ func (h *Handler) Init() *gin.Engine {
 }
 
 func (h *Handler) initAPI(router *gin.Engine) {
-	v1Handler := v1.New()
+	v1Handler := v1.New(h.grpcClient)
 	api := router.Group("/api")
 	{
 		v1Handler.Init(api)
