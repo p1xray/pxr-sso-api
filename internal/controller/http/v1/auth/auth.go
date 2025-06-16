@@ -2,7 +2,9 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	ssopb "github.com/p1xray/pxr-sso-protos/gen/go/sso"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"pxr-sso-api/internal/server"
 )
 
@@ -18,6 +20,7 @@ func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
 	auth := api.Group("/auth")
 	{
 		auth.POST("/login", ar.login)
+		auth.POST("/register", ar.register)
 	}
 }
 
@@ -30,12 +33,12 @@ func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
 //	@Accept				mpfd
 //	@Produce			json
 //	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input query LoginInput true "Input parameters for user login."
+//	@Param				input formData LoginInput true "Input parameters for user login."
 //	@Success			200	{object}	server.dataResponse[LoginOutput]
 //	@Failure			500	{object}	server.dataResponse[LoginOutput]
 //	@Router				/api/v1/auth/login [post]
 func (a *Routes) login(c *gin.Context) {
-	inp, err := server.GetInputFromQuery[LoginInput](c)
+	inp, err := server.GetInputFromForm[LoginInput](c)
 	if err != nil {
 		server.ErrorResponse[LoginOutput](c, err.Error())
 		return
@@ -61,6 +64,74 @@ func (a *Routes) login(c *gin.Context) {
 	}
 
 	response := &LoginOutput{
+		AccessToken:  grpcLoginResponse.GetAccessToken(),
+		RefreshToken: grpcLoginResponse.GetRefreshToken(),
+	}
+
+	server.SuccessResponse(c, response)
+}
+
+// Register.
+//
+//	@Summary			Register
+//	@Description		Register
+//	@Tags				Auth
+//	@Id 				register
+//	@Accept				mpfd
+//	@Produce			json
+//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
+//	@Param				input formData RegisterInput true "Input parameters for user register."
+//	@Param				avatar_file formData file false "Avatar file."
+//	@Success			200	{object}	server.dataResponse[RegisterOutput]
+//	@Failure			500	{object}	server.dataResponse[RegisterOutput]
+//	@Router				/api/v1/auth/register [post]
+func (a *Routes) register(c *gin.Context) {
+	inp, err := server.GetInputFromForm[RegisterInput](c)
+	if err != nil {
+		server.ErrorResponse[RegisterOutput](c, err.Error())
+		return
+	}
+
+	var dateOfBirthPb *timestamppb.Timestamp
+	if inp.DateOfBirth != nil {
+		dateOfBirthPb = timestamppb.New(*inp.DateOfBirth)
+	}
+
+	var genderPb ssopb.Gender
+	if inp.Gender != nil {
+		genderPb = ssopb.Gender(*inp.Gender)
+	}
+
+	var avatarFileKeyPb *wrappers.StringValue
+	if inp.AvatarFile != nil {
+		// TODO: save file to files storage.
+		avatarFileKeyPb = &wrappers.StringValue{Value: inp.AvatarFile.Filename}
+	}
+
+	grpcRegisterRequest := &ssopb.RegisterRequest{
+		Username:      inp.Username,
+		Password:      inp.Password,
+		ClientCode:    inp.ClientCode,
+		Fio:           inp.Fio,
+		DateOfBirth:   dateOfBirthPb,
+		Gender:        genderPb,
+		AvatarFileKey: avatarFileKeyPb,
+		UserAgent:     server.GetUserAgent(c),
+		Fingerprint:   server.GetFingerprint(c),
+		Issuer:        server.GetHost(c),
+	}
+
+	grpcLoginResponse, err := a.grpcAuthClient.Register(
+		c.Request.Context(),
+		grpcRegisterRequest)
+	if err != nil {
+		// TODO: check error from gRPC server and return invalid credentials error
+
+		server.ErrorResponse[RegisterOutput](c, err.Error())
+		return
+	}
+
+	response := &RegisterOutput{
 		AccessToken:  grpcLoginResponse.GetAccessToken(),
 		RefreshToken: grpcLoginResponse.GetRefreshToken(),
 	}

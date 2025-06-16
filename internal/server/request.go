@@ -47,6 +47,15 @@ func GetInputFromQuery[T any](c *gin.Context) (T, error) {
 	return inp, nil
 }
 
+func GetInputFromForm[T any](c *gin.Context) (T, error) {
+	var inp T
+	if err := c.Bind(&inp); err != nil {
+		return inp, ErrInvalidInputQuery
+	}
+
+	return inp, nil
+}
+
 func GetUserAgent(c *gin.Context) string {
 	return c.Request.UserAgent()
 }
