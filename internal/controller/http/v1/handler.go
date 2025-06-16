@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	grpcclient "pxr-sso-api/internal/client/grpc"
+	"pxr-sso-api/internal/controller/http/v1/auth"
 	"pxr-sso-api/internal/controller/http/v1/ping"
 )
 
@@ -21,5 +22,6 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
 		ping.InitRoutes(v1)
+		auth.InitRoutes(v1, h.grpcClient.Auth)
 	}
 }
