@@ -2,16 +2,8 @@ package auth
 
 import (
 	"mime/multipart"
+	"pxr-sso-api/internal/controller/http/v1/model"
 	"time"
-)
-
-// GenderEnum is type for gender enum.
-type GenderEnum int16 // @name GenderEnum
-
-// Gender enum.
-const (
-	MALE   GenderEnum = 1 // Male
-	FEMALE GenderEnum = 2 // Female
 )
 
 // LoginInput is input model of user login request.
@@ -34,7 +26,7 @@ type RegisterInput struct {
 	ClientCode  string                `form:"client_code" binding:"required"`         // Client code.
 	Fio         string                `form:"fio" binding:"required"`                 // Full name.
 	DateOfBirth *time.Time            `form:"date_of_birth" time_format:"2006-01-02"` // Date of birth.
-	Gender      *GenderEnum           `form:"gender"`                                 // Gender.
+	Gender      *model.GenderEnum     `form:"gender"`                                 // Gender.
 	AvatarFile  *multipart.FileHeader `form:"avatar_file" format:"file"`              // Avatar file.
 } // @name RegisterInput
 
