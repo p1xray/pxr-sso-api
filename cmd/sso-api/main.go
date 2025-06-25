@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -26,6 +27,11 @@ const (
 
 // @BasePath /
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("error loading .env file")
+	}
+
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
