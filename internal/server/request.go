@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -19,7 +20,7 @@ func GetParamFromRoute(c *gin.Context, name string) (int64, error) {
 
 	id, err := strconv.ParseInt(routeId, 10, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%w:%w", ErrConvertStringToNumber, err)
 	}
 
 	return id, nil

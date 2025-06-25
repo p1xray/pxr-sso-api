@@ -1,8 +1,10 @@
 package profile
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	ssoprofilepb "github.com/p1xray/pxr-sso-protos/gen/go/profile"
+	"pxr-sso-api/internal/controller/http/middleware"
 	"pxr-sso-api/internal/controller/http/v1/model"
 	"pxr-sso-api/internal/server"
 	"time"
@@ -18,29 +20,77 @@ func InitRoutes(api *gin.RouterGroup, grpcProfileClient ssoprofilepb.SsoProfileC
 	r := &Routes{grpcProfileClient: grpcProfileClient}
 
 	profile := api.Group("/profile")
+	profile.Use(middleware.CheckJWT())
 	{
-		profile.GET("", r.profile)
+		profile.GET("", middleware.HasScope("profile.read"), r.profile)
+		profile.GET(":id", middleware.HasScope("profile.read"), r.profileByID)
 	}
 }
 
-// User profile.
+// Current user profile.
 //
-//	@Summary		User profile
-//	@Description	User profile
+//	@Summary		Current user profile
+//	@Description	Current user profile
 //	@Tags			Profile
 //	@Id 			profile
 //	@Produce		json
+//	@Security 		ApiKeyAuth
 //	@Success		200	{object}  server.dataResponse[ProfileOutput]
 //	@Failure		500	{object}  server.dataResponse[ProfileOutput]
 //	@Router			/api/v1/profile [get]
-func (a *Routes) profile(c *gin.Context) {
-	grpcProfileRequest := &ssoprofilepb.GetProfileRequest{UserId: 1}
-	grpcProfileResponse, err := a.grpcProfileClient.GetProfile(c.Request.Context(), grpcProfileRequest)
+func (r *Routes) profile(c *gin.Context) {
+	userID, err := server.GetUserID(c)
+	if err != nil {
+		server.ErrorResponse[ProfileOutput](c, err.Error())
+		return
+	}
+
+	profile, err := r.profileFromGRPC(c.Request.Context(), userID)
 	if err != nil {
 		// TODO: check error from gRPC server and return correct error
 
 		server.ErrorResponse[ProfileOutput](c, err.Error())
 		return
+	}
+
+	server.SuccessResponse(c, &profile)
+}
+
+// User profile by ID.
+//
+//	@Summary		User profile by ID
+//	@Description	User profile by ID
+//	@Tags			Profile
+//	@Id 			profileByID
+//	@Produce		json
+//	@Security 		ApiKeyAuth
+//	@Param			id	path  int  true  "User ID"
+//	@Success		200	{object}  server.dataResponse[ProfileOutput]
+//	@Failure		500	{object}  server.dataResponse[ProfileOutput]
+//	@Router			/api/v1/profile/{id} [get]
+func (r *Routes) profileByID(c *gin.Context) {
+	userID, err := server.GetIdFromRoute(c)
+	if err != nil {
+		server.ErrorResponse[ProfileOutput](c, err.Error())
+		return
+	}
+
+	profile, err := r.profileFromGRPC(c.Request.Context(), userID)
+	if err != nil {
+		// TODO: check error from gRPC server and return correct error
+
+		server.ErrorResponse[ProfileOutput](c, err.Error())
+		return
+	}
+
+	server.SuccessResponse(c, &profile)
+}
+
+func (r *Routes) profileFromGRPC(ctx context.Context, userID int64) (ProfileOutput, error) {
+	grpcProfileRequest := &ssoprofilepb.GetProfileRequest{UserId: userID}
+	grpcProfileResponse, err := r.grpcProfileClient.GetProfile(ctx, grpcProfileRequest)
+	if err != nil {
+		return ProfileOutput{}, err
 	}
 
 	var dateOfBirth *time.Time
@@ -61,7 +111,7 @@ func (a *Routes) profile(c *gin.Context) {
 		avatarFileKey = &avatarFileKeyValue
 	}
 
-	output := &ProfileOutput{
+	output := ProfileOutput{
 		UserID:        grpcProfileResponse.GetUserId(),
 		Username:      grpcProfileResponse.GetUsername(),
 		Fio:           grpcProfileResponse.GetFio(),
@@ -69,5 +119,6 @@ func (a *Routes) profile(c *gin.Context) {
 		Gender:        gender,
 		AvatarFileKey: avatarFileKey,
 	}
-	server.SuccessResponse(c, output)
+
+	return output, nil
 }
