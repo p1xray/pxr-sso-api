@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"pxr-sso-api/internal/server"
 )
 
 var (
@@ -32,21 +33,42 @@ func CheckJWT() gin.HandlerFunc {
 
 	middleware := jwtmiddleware.New(jwtValidator.ValidateToken)
 
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 		encounteredError := true
 		var handler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 			encounteredError = false
-			ctx.Request = r
-			ctx.Next()
+			c.Request = r
+			c.Next()
 		}
 
-		middleware.ParseJWT(handler).ServeHTTP(ctx.Writer, ctx.Request)
+		middleware.ParseJWT(handler).ServeHTTP(c.Writer, c.Request)
 
 		if encounteredError {
-			ctx.AbortWithStatusJSON(
+			c.AbortWithStatusJSON(
 				http.StatusUnauthorized,
 				map[string]string{"message": "JWT is invalid."},
 			)
 		}
+	}
+}
+
+func HasScope(expectedScope string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userHasScope, err := server.UserHasScope(c, expectedScope)
+		if err != nil {
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				map[string]string{"message": err.Error()},
+			)
+		}
+
+		if !userHasScope {
+			c.AbortWithStatusJSON(
+				http.StatusForbidden,
+				map[string]string{"message": "User does not have the required permission."},
+			)
+		}
+
+		c.Next()
 	}
 }

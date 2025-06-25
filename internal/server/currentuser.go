@@ -6,6 +6,7 @@ import (
 	jwtmiddleware "github.com/p1xray/pxr-sso/pkg/jwt"
 	jwtclaims "github.com/p1xray/pxr-sso/pkg/jwt/claims"
 	"strconv"
+	"strings"
 )
 
 func GetUserID(c *gin.Context) (int64, error) {
@@ -20,6 +21,22 @@ func GetUserID(c *gin.Context) (int64, error) {
 	}
 
 	return userID, nil
+}
+
+func UserHasScope(c *gin.Context, expectedScope string) (bool, error) {
+	claims, err := getTokenClaims(c)
+	if err != nil {
+		return false, err
+	}
+
+	scopes := strings.Split(claims.RegisteredClaims.Scope, " ")
+	for _, scope := range scopes {
+		if scope == expectedScope {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func getTokenClaims(c *gin.Context) (jwtclaims.ValidatedClaims, error) {

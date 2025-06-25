@@ -22,8 +22,8 @@ func InitRoutes(api *gin.RouterGroup, grpcProfileClient ssoprofilepb.SsoProfileC
 	profile := api.Group("/profile")
 	profile.Use(middleware.CheckJWT())
 	{
-		profile.GET("", r.profile)
-		profile.GET(":id", r.profileByID)
+		profile.GET("", middleware.HasScope("profile.read"), r.profile)
+		profile.GET(":id", middleware.HasScope("profile.read"), r.profileByID)
 	}
 }
 
