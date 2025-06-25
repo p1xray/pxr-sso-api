@@ -3,6 +3,7 @@ package profile
 import (
 	"github.com/gin-gonic/gin"
 	ssoprofilepb "github.com/p1xray/pxr-sso-protos/gen/go/profile"
+	"pxr-sso-api/internal/controller/http/middleware"
 	"pxr-sso-api/internal/controller/http/v1/model"
 	"pxr-sso-api/internal/server"
 	"time"
@@ -18,24 +19,32 @@ func InitRoutes(api *gin.RouterGroup, grpcProfileClient ssoprofilepb.SsoProfileC
 	r := &Routes{grpcProfileClient: grpcProfileClient}
 
 	profile := api.Group("/profile")
+	profile.Use(middleware.CheckJWT())
 	{
 		profile.GET("", r.profile)
 	}
 }
 
-// User profile.
+// Current user profile.
 //
-//	@Summary		User profile
-//	@Description	User profile
+//	@Summary		Current user profile
+//	@Description	Current user profile
 //	@Tags			Profile
 //	@Id 			profile
 //	@Produce		json
+//	@Security 		ApiKeyAuth
 //	@Success		200	{object}  server.dataResponse[ProfileOutput]
 //	@Failure		500	{object}  server.dataResponse[ProfileOutput]
 //	@Router			/api/v1/profile [get]
-func (a *Routes) profile(c *gin.Context) {
-	grpcProfileRequest := &ssoprofilepb.GetProfileRequest{UserId: 1}
-	grpcProfileResponse, err := a.grpcProfileClient.GetProfile(c.Request.Context(), grpcProfileRequest)
+func (r *Routes) profile(c *gin.Context) {
+	userID, err := server.GetUserID(c)
+	if err != nil {
+		server.ErrorResponse[ProfileOutput](c, err.Error())
+		return
+	}
+
+	grpcProfileRequest := &ssoprofilepb.GetProfileRequest{UserId: userID}
+	grpcProfileResponse, err := r.grpcProfileClient.GetProfile(c.Request.Context(), grpcProfileRequest)
 	if err != nil {
 		// TODO: check error from gRPC server and return correct error
 
