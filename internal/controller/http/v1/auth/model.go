@@ -8,15 +8,15 @@ import (
 
 // LoginInput is input model of user login request.
 type LoginInput struct {
-	Username   string `form:"username" binding:"required"`    // Username.
-	Password   string `form:"password" binding:"required"`    // Password.
-	ClientCode string `form:"client_code" binding:"required"` // Client code.
+	Username   string `json:"username" binding:"required"`   // Username.
+	Password   string `json:"password" binding:"required"`   // Password.
+	ClientCode string `json:"clientCode" binding:"required"` // Client code.
 } // @name LoginInput
 
 // LoginOutput is output model of user login request.
 type LoginOutput struct {
-	AccessToken  string `json:"access_token" binding:"required"`  // Access token.
-	RefreshToken string `json:"refresh_token" binding:"required"` // Refresh token.
+	AccessToken  string `json:"accessToken" binding:"required"`  // Access token.
+	RefreshToken string `json:"refreshToken" binding:"required"` // Refresh token.
 } // @name LoginOutput
 
 // RegisterInput is input model of user register request.

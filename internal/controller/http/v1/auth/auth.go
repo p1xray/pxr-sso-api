@@ -40,7 +40,7 @@ func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
 //	@Failure			500	{object}	server.dataResponse[LoginOutput]
 //	@Router				/api/v1/auth/login [post]
 func (a *Routes) login(c *gin.Context) {
-	inp, err := server.GetInputFromForm[LoginInput](c)
+	inp, err := server.GetInputFromBody[LoginInput](c)
 	if err != nil {
 		server.ErrorResponse[LoginOutput](c, err.Error())
 		return

@@ -3,7 +3,9 @@ package profile
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	ssoprofilepb "github.com/p1xray/pxr-sso-protos/gen/go/profile"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"pxr-sso-api/internal/controller/http/middleware"
 	"pxr-sso-api/internal/controller/http/v1/model"
 	"pxr-sso-api/internal/server"
@@ -24,6 +26,7 @@ func InitRoutes(api *gin.RouterGroup, grpcProfileClient ssoprofilepb.SsoProfileC
 	{
 		profile.GET("", middleware.HasScope("profile.read"), r.profile)
 		profile.GET(":id", middleware.HasScope("profile.read"), r.profileByID)
+		profile.POST("edit", middleware.HasScope("profile.edit"), r.editProfile)
 	}
 }
 
@@ -84,6 +87,67 @@ func (r *Routes) profileByID(c *gin.Context) {
 	}
 
 	server.SuccessResponse(c, &profile)
+}
+
+// Edit user profile data.
+//
+//	@Summary		Edit user profile data
+//	@Description	Edit user profile data
+//	@Tags			Profile
+//	@Id 			editProfile
+//	@Accept			json
+//	@Produce		json
+//	@Security 		ApiKeyAuth
+//	@Param			input body EditProfileInput true "Input parameters for editing user profile data."
+//	@Success		200	{object}  server.dataResponse[bool]
+//	@Failure		500	{object}  server.dataResponse[bool]
+//	@Router			/api/v1/profile/edit [post]
+func (r *Routes) editProfile(c *gin.Context) {
+	userID, err := server.GetUserID(c)
+	if err != nil {
+		server.ErrorResponse[bool](c, err.Error())
+		return
+	}
+
+	inp, err := server.GetInputFromBody[EditProfileInput](c)
+	if err != nil {
+		server.ErrorResponse[bool](c, err.Error())
+		return
+	}
+
+	var dateOfBirthPb *timestamppb.Timestamp
+	if inp.DateOfBirth != nil {
+		dateOfBirthPb = timestamppb.New(*inp.DateOfBirth)
+	}
+
+	var genderPb ssoprofilepb.Gender
+	if inp.Gender != nil {
+		genderPb = ssoprofilepb.Gender(*inp.Gender)
+	}
+
+	var avatarFileKeyPb *wrappers.StringValue
+	if inp.AvatarFileKey != nil {
+		avatarFileKeyPb = &wrappers.StringValue{Value: *inp.AvatarFileKey}
+	}
+
+	request := &ssoprofilepb.EditProfileRequest{
+		UserId:        userID,
+		FullName:      inp.FullName,
+		DateOfBirth:   dateOfBirthPb,
+		Gender:        genderPb,
+		AvatarFileKey: avatarFileKeyPb,
+	}
+
+	response, err := r.grpcProfileClient.EditProfile(c.Request.Context(), request)
+	if err != nil {
+		// TODO: check error from gRPC server and return correct error
+
+		server.ErrorResponse[ProfileOutput](c, err.Error())
+		return
+	}
+
+	success := response.GetSuccess()
+	server.SuccessResponse(c, &success)
 }
 
 func (r *Routes) profileFromGRPC(ctx context.Context, userID int64) (ProfileOutput, error) {

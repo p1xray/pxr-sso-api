@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	grpcclient "pxr-sso-api/internal/client/grpc"
 	v1 "pxr-sso-api/internal/controller/http/v1"
@@ -23,6 +24,11 @@ func New(grpcClient *grpcclient.GRPCClient) *Handler {
 // Init initializes the http server request handler.
 func (h *Handler) Init() *gin.Engine {
 	router := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"Content-Type", "Authorization", "X-Fingerprint"}
+	router.Use(cors.New(config))
 
 	h.initAPI(router)
 	initSwagger(router)

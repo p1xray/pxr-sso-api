@@ -14,3 +14,11 @@ type ProfileOutput struct {
 	Gender        *model.GenderEnum `json:"gender"`          // User gender.
 	AvatarFileKey *string           `json:"avatar_file_key"` // User avatar file key.
 } // @name ProfileOutput
+
+// EditProfileInput is input model of editing user profile data request.
+type EditProfileInput struct {
+	FullName      string            `json:"full_name"`       // User full name.
+	DateOfBirth   *time.Time        `json:"date_of_birth"`   // User date of birth.
+	Gender        *model.GenderEnum `json:"gender"`          // User gender.
+	AvatarFileKey *string           `json:"avatar_file_key"` // User avatar file key.
+} // @name EditProfileInput
