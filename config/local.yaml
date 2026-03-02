@@ -6,3 +6,5 @@ grpc:
     address: 'localhost:6004'
   profile:
     address: 'localhost:6004'
+  oauth:
+    address: 'localhost:6004'

@@ -2,6 +2,7 @@ package grpcapp
 
 import (
 	"fmt"
+	oauthpb "github.com/p1xray/pxr-sso-protos/gen/go/oauth"
 	ssoprofilepb "github.com/p1xray/pxr-sso-protos/gen/go/profile"
 	ssopb "github.com/p1xray/pxr-sso-protos/gen/go/sso"
 	"google.golang.org/grpc"
@@ -38,7 +39,12 @@ func (a *App) CreateGRPCClient() *grpcclient.GRPCClient {
 		a.log.Error("failed creating profile grpc client", sl.Err(err))
 	}
 
-	return grpcclient.New(auth, profile)
+	oauth, err := a.createOAuthClient()
+	if err != nil {
+		a.log.Error("failed creating profile grpc client", sl.Err(err))
+	}
+
+	return grpcclient.New(auth, profile, oauth)
 }
 
 func (a *App) createAuthClient() (ssopb.SsoClient, error) {
@@ -67,4 +73,18 @@ func (a *App) createProfileClient() (ssoprofilepb.SsoProfileClient, error) {
 
 	profileClient := ssoprofilepb.NewSsoProfileClient(con)
 	return profileClient, nil
+}
+
+func (a *App) createOAuthClient() (oauthpb.OauthClient, error) {
+	const op = "grpcapp.createOAuthClient"
+
+	con, err := grpc.NewClient(
+		a.config.GRPCClients.OAuth.Addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	oauthClient := oauthpb.NewOauthClient(con)
+	return oauthClient, nil
 }

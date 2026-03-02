@@ -101,8 +101,8 @@ github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjY
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/p1xray/pxr-sso v0.0.5 h1:4IWphGjnl/Dmrn6V9v4MPSHeICep0YgotLR+HfiR20c=
 github.com/p1xray/pxr-sso v0.0.5/go.mod h1:XxfIe7iNb1zqeOADEMqQlg6kIkDtGcbFExBaUqY/Kjw=
-github.com/p1xray/pxr-sso-protos v0.0.4 h1:q3uUCkXURW8cIIlynLOd8Dens9f/E16G6C7q18qifXY=
-github.com/p1xray/pxr-sso-protos v0.0.4/go.mod h1:Uc14Vnpfzt78Cv9sfBDSBJd89spXPaqSfPRxigI+Jsc=
+github.com/p1xray/pxr-sso-protos v0.0.10 h1:VJ0ccwWnVjdjcVYA6JROb1BCbfRvf+Z1UeSOrxDEYMk=
+github.com/p1xray/pxr-sso-protos v0.0.10/go.mod h1:Uc14Vnpfzt78Cv9sfBDSBJd89spXPaqSfPRxigI+Jsc=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=
 github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

@@ -23,6 +23,7 @@ type ServerConfig struct {
 type GRPCClients struct {
 	Auth    GRPCClient `yaml:"auth"`
 	Profile GRPCClient `yaml:"profile"`
+	OAuth   GRPCClient `yaml:"oauth"`
 }
 
 // GRPCClient is the configuration of gRPC client.

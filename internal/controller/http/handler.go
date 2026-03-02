@@ -3,12 +3,11 @@ package http
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	grpcclient "pxr-sso-api/internal/client/grpc"
-	v1 "pxr-sso-api/internal/controller/http/v1"
-
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "pxr-sso-api/docs"
+	grpcclient "pxr-sso-api/internal/client/grpc"
+	v1 "pxr-sso-api/internal/controller/http/v1"
 )
 
 // Handler is handler for http server requests.
@@ -26,8 +25,11 @@ func (h *Handler) Init() *gin.Engine {
 	router := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	config.AllowHeaders = []string{"Content-Type", "Authorization", "X-Fingerprint"}
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	// config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	// config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept"}
+	// config.AllowCredentials = true
+	// config.MaxAge = 12 * time.Hour
 	router.Use(cors.New(config))
 
 	h.initAPI(router)
