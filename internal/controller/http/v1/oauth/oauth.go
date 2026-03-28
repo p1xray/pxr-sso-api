@@ -44,6 +44,7 @@ func (r *Routes) authorize(c *gin.Context) {
 		CodeChallenge:       input.CodeChallenge,
 		CodeChallengeMethod: input.CodeChallengeMethod,
 		State:               input.State,
+		Audience:            input.Audience,
 		Scope:               input.Scope,
 	}
 
@@ -134,12 +135,9 @@ func (r *Routes) token(c *gin.Context) {
 	tokenRequest := &oauthpb.TokenRequest{
 		GrantType:    input.GrantType,
 		ClientId:     input.ClientID,
-		ClientSecret: input.ClientSecret,
 		Code:         input.Code,
 		RedirectUri:  input.RedirectURI,
 		CodeVerifier: input.CodeVerifier,
-		Audience:     input.Audience,
-		Scope:        strings.Split(input.Scope, " "),
 	}
 
 	tokenResponse, err := r.grpcOAuthClient.Token(c.Request.Context(), tokenRequest)

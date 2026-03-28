@@ -8,6 +8,7 @@ type AuthorizeInput struct {
 	CodeChallenge       []string `form:"code_challenge"`
 	CodeChallengeMethod []string `form:"code_challenge_method"`
 	State               []string `form:"state"`
+	Audience            []string `form:"audience"`
 	Scope               []string `form:"scope"`
 }
 
@@ -70,12 +71,9 @@ type ConsentOutput struct {
 type TokenInput struct {
 	GrantType    string `form:"grant_type" binding:"required"`
 	ClientID     string `form:"client_id" binding:"required"`
-	ClientSecret string `form:"client_secret" binding:"required"`
 	Code         string `form:"code" binding:"required"`
 	RedirectURI  string `form:"redirect_uri" binding:"required"`
 	CodeVerifier string `form:"code_verifier" binding:"required"`
-	Audience     string `form:"audience" binding:"required"`
-	Scope        string `form:"scope"`
 }
 
 // TokenOutput is output model of oauth exchange token request.
