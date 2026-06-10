@@ -6,22 +6,28 @@ import (
 	"time"
 )
 
-func InternalServerError(c *gin.Context, code, description, uri string) {
+const (
+	errorCodeInternalServerError = "server_error"
+	errorCodeInvalidRequest      = "invalid_request"
+	errorCodeUnauthorized        = "unauthorized"
+)
+
+func InternalServerError(c *gin.Context, message string) {
 	c.AbortWithStatusJSON(
 		http.StatusInternalServerError,
-		newErrorResponse(code, description, uri))
+		newErrorResponse(errorCodeInternalServerError, message))
 }
 
-func BadRequest(c *gin.Context, code, description, uri string) {
+func BadRequest(c *gin.Context, message string) {
 	c.AbortWithStatusJSON(
 		http.StatusBadRequest,
-		newErrorResponse(code, description, uri))
+		newErrorResponse(errorCodeInvalidRequest, message))
 }
 
-func Unauthorized(c *gin.Context, code, description, uri string) {
+func Unauthorized(c *gin.Context, message string) {
 	c.AbortWithStatusJSON(
 		http.StatusUnauthorized,
-		newErrorResponse(code, description, uri))
+		newErrorResponse(errorCodeUnauthorized, message))
 }
 
 func Redirect(c *gin.Context, uri string) {

@@ -1,10 +1,6 @@
 env: 'local'
-server:
-  port: 6003
+port: '6003'
 grpc:
-  auth:
-    address: 'localhost:6004'
-  profile:
-    address: 'localhost:6004'
-  oauth:
-    address: 'localhost:6004'
+  oidc: 'localhost:6004'
+  auth: 'localhost:6004'
+  profile: 'localhost:6004'

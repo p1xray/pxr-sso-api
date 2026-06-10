@@ -10,12 +10,12 @@ import (
 
 // Handler is request handler for API v1.
 type Handler struct {
-	grpcClient *grpcclient.GRPCClient
+	grpcClients grpcclient.Clients
 }
 
 // New creates new instance of the API v1 request handler.
-func New(grpcClient *grpcclient.GRPCClient) *Handler {
-	return &Handler{grpcClient: grpcClient}
+func New(grpcClients grpcclient.Clients) *Handler {
+	return &Handler{grpcClients: grpcClients}
 }
 
 // Init initializes the API v1 request handler.
@@ -23,8 +23,8 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 	v1 := api.Group("/v1")
 	{
 		ping.InitRoutes(v1)
-		oidc.InitRoutes(v1, h.grpcClient.OIDC)
-		auth.InitRoutes(v1, h.grpcClient.Auth)
-		// profile.InitRoutes(v1, h.grpcClient.Profile)
+		oidc.InitRoutes(v1, h.grpcClients.OIDC())
+		auth.InitRoutes(v1, h.grpcClients.Auth())
+		// profile.InitRoutes(v1, h.grpcClient.Profile())
 	}
 }

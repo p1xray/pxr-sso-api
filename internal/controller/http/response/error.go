@@ -1,15 +1,13 @@
 package response
 
 type errorResponse struct {
-	Error            string `json:"error,omitempty"`
-	ErrorDescription string `json:"error_description,omitempty"`
-	ErrorURI         string `json:"error_uri,omitempty"`
-}
+	Code        string `json:"error,omitempty"`
+	Description string `json:"error_description,omitempty"`
+} //@name ErrorResponse
 
-func newErrorResponse(code, description, uri string) errorResponse {
+func newErrorResponse(code, description string) errorResponse {
 	return errorResponse{
-		Error:            code,
-		ErrorDescription: description,
-		ErrorURI:         uri,
+		Code:        code,
+		Description: description,
 	}
 }

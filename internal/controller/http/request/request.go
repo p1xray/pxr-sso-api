@@ -6,16 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 	jwtmiddleware "github.com/p1xray/pxr-sso/pkg/jwt"
 	jwtclaims "github.com/p1xray/pxr-sso/pkg/jwt/claims"
-	"pxr-sso-api/internal/constants"
 	"strconv"
 	"strings"
 )
 
+const (
+	sessionCookieNamePrefix = "pxr.sso.session:"
+)
+
 var (
-	ErrInvalidInputQuery     = errors.New("invalid input query")
-	ErrInvalidInputForm      = errors.New("invalid input form")
-	ErrGetTokenClaims        = errors.New("error getting token claims from request")
-	ErrConvertStringToNumber = errors.New("error converting string value to number")
+	errInvalidInputQuery     = errors.New("invalid input query")
+	errInvalidInputForm      = errors.New("invalid input form")
+	errGetTokenClaims        = errors.New("error getting token claims from request")
+	errConvertStringToNumber = errors.New("error converting string value to number")
 )
 
 type SessionCookie struct {
@@ -26,7 +29,7 @@ type SessionCookie struct {
 func FromQuery[T any](c *gin.Context) (T, error) {
 	var inp T
 	if err := c.BindQuery(&inp); err != nil {
-		return inp, fmt.Errorf("%w: %w", ErrInvalidInputQuery, err)
+		return inp, fmt.Errorf("%w: %w", errInvalidInputQuery, err)
 	}
 
 	return inp, nil
@@ -35,7 +38,7 @@ func FromQuery[T any](c *gin.Context) (T, error) {
 func FromForm[T any](c *gin.Context) (T, error) {
 	var inp T
 	if err := c.Bind(&inp); err != nil {
-		return inp, fmt.Errorf("%w: %w", ErrInvalidInputForm, err)
+		return inp, fmt.Errorf("%w: %w", errInvalidInputForm, err)
 	}
 
 	return inp, nil
@@ -44,7 +47,7 @@ func FromForm[T any](c *gin.Context) (T, error) {
 func SessionFromCookie(c *gin.Context) []SessionCookie {
 	sessions := make([]SessionCookie, 0)
 	for _, cookie := range c.Request.Cookies() {
-		if strings.HasPrefix(cookie.Name, constants.SessionCookieNamePrefix) {
+		if strings.HasPrefix(cookie.Name, sessionCookieNamePrefix) {
 			session := SessionCookie{Name: cookie.Name, Value: cookie.Value}
 			sessions = append(sessions, session)
 		}
@@ -61,7 +64,7 @@ func SubjectFromToken(c *gin.Context) (int64, error) {
 
 	userID, err := strconv.ParseInt(claims.RegisteredClaims.Subject, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrConvertStringToNumber, err)
+		return 0, fmt.Errorf("%w: %w", errConvertStringToNumber, err)
 	}
 
 	return userID, nil
@@ -87,7 +90,7 @@ func getTokenClaims(c *gin.Context) (jwtclaims.ValidatedClaims, error) {
 	ctx := c.Request.Context()
 	claims, ok := ctx.Value(jwtmiddleware.ContextKey{}).(jwtclaims.ValidatedClaims)
 	if !ok {
-		return jwtclaims.ValidatedClaims{}, ErrGetTokenClaims
+		return jwtclaims.ValidatedClaims{}, errGetTokenClaims
 	}
 
 	return claims, nil
