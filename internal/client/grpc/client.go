@@ -1,23 +1,23 @@
 package grpcclient
 
 import (
-	oauthpb "github.com/p1xray/pxr-sso-protos/gen/go/oauth"
+	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
+	oidcpb "github.com/p1xray/pxr-sso-protos/gen/go/oidc"
 	ssoprofilepb "github.com/p1xray/pxr-sso-protos/gen/go/profile"
-	ssopb "github.com/p1xray/pxr-sso-protos/gen/go/sso"
 )
 
 // GRPCClient provides gRPC clients.
 type GRPCClient struct {
-	Auth    ssopb.SsoClient
+	OIDC    oidcpb.OidcClient
+	Auth    authpb.AuthClient
 	Profile ssoprofilepb.SsoProfileClient
-	OAuth   oauthpb.OauthClient
 }
 
 // New creates new gRPC client instance.
-func New(auth ssopb.SsoClient, profile ssoprofilepb.SsoProfileClient, oauth oauthpb.OauthClient) *GRPCClient {
+func New(oidc oidcpb.OidcClient, auth authpb.AuthClient, profile ssoprofilepb.SsoProfileClient) *GRPCClient {
 	return &GRPCClient{
+		OIDC:    oidc,
 		Auth:    auth,
 		Profile: profile,
-		OAuth:   oauth,
 	}
 }

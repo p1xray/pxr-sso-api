@@ -6,4 +6,6 @@ const (
 
 	ErrorDescriptionInternalServerError = "internal server error"
 	ErrorDescriptionEmptyRedirectURI    = "redirect URI is empty"
+
+	SessionCookieNamePrefix = "pxr.sso.session:"
 )

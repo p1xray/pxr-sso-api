@@ -103,6 +103,7 @@ github.com/p1xray/pxr-sso v0.0.5 h1:4IWphGjnl/Dmrn6V9v4MPSHeICep0YgotLR+HfiR20c=
 github.com/p1xray/pxr-sso v0.0.5/go.mod h1:XxfIe7iNb1zqeOADEMqQlg6kIkDtGcbFExBaUqY/Kjw=
 github.com/p1xray/pxr-sso-protos v0.0.13 h1:0Hmpu9WpYRIy07nZ733/e9XOTqFBiZ+aqfdr7dUix70=
 github.com/p1xray/pxr-sso-protos v0.0.13/go.mod h1:Uc14Vnpfzt78Cv9sfBDSBJd89spXPaqSfPRxigI+Jsc=
+github.com/p1xray/pxr-sso-protos v0.0.14/go.mod h1:Uc14Vnpfzt78Cv9sfBDSBJd89spXPaqSfPRxigI+Jsc=
 github.com/pelletier/go-toml/v2 v2.2.4 h1:mye9XuhQ6gvn5h28+VilKrrPoQVanw5PMw/TB0t5Ec4=
 github.com/pelletier/go-toml/v2 v2.2.4/go.mod h1:2gIqNv+qfxSVS7cM2xJQKtLSTLUE9V8t9Stt+h56mCY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

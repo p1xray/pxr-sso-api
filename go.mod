@@ -10,7 +10,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/p1xray/pxr-sso v0.0.5
-	github.com/p1xray/pxr-sso-protos v0.0.13
+	github.com/p1xray/pxr-sso-protos v0.0.14
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.4

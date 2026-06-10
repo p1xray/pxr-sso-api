@@ -8,6 +8,7 @@ import (
 	_ "pxr-sso-api/docs"
 	grpcclient "pxr-sso-api/internal/client/grpc"
 	v1 "pxr-sso-api/internal/controller/http/v1"
+	"time"
 )
 
 // Handler is handler for http server requests.
@@ -26,10 +27,8 @@ func (h *Handler) Init() *gin.Engine {
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:3000"}
-	// config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-	// config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept"}
-	// config.AllowCredentials = true
-	// config.MaxAge = 12 * time.Hour
+	config.AllowCredentials = true
+	config.MaxAge = 12 * time.Hour
 	router.Use(cors.New(config))
 
 	h.initAPI(router)

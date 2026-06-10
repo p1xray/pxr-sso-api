@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"pxr-sso-api/internal/server"
+	"pxr-sso-api/internal/controller/http/request"
 )
 
 var (
@@ -54,7 +54,7 @@ func CheckJWT() gin.HandlerFunc {
 
 func HasScope(expectedScope string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userHasScope, err := server.UserHasScope(c, expectedScope)
+		userHasScope, err := request.UserHasScope(c, expectedScope)
 		if err != nil {
 			c.AbortWithStatusJSON(
 				http.StatusInternalServerError,

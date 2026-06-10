@@ -3,7 +3,7 @@ package response
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"pxr-sso-api/internal/constants"
+	"time"
 )
 
 func InternalServerError(c *gin.Context, code, description, uri string) {
@@ -32,30 +32,8 @@ func Success(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, data)
 }
 
-func TryRedirect(c *gin.Context, res ServiceResponse[string]) {
-	if res.Data() == "" {
-		if res.ErrorCode() == constants.ErrorCodeInternalServerError {
-			InternalServerError(c, res.ErrorCode(), res.ErrorDescription(), res.ErrorURI())
-			return
-		}
-
-		BadRequest(c, res.ErrorCode(), res.ErrorDescription(), res.ErrorURI())
-		return
-	}
-
-	Redirect(c, res.Data())
-}
-
-func TrySuccess[T any](c *gin.Context, res ServiceResponse[T]) {
-	if !res.IsSuccess() {
-		if res.ErrorCode() == constants.ErrorCodeInternalServerError {
-			InternalServerError(c, res.ErrorCode(), res.ErrorDescription(), res.ErrorURI())
-			return
-		}
-
-		BadRequest(c, res.ErrorCode(), res.ErrorDescription(), res.ErrorURI())
-		return
-	}
-
-	Success(c, res.Data())
+func SetSessionCookie(c *gin.Context, name string, value string) {
+	maxAge := 30 * time.Minute
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie(name, value, int(time.Now().Add(maxAge).Unix()), "/", "", true, true)
 }
