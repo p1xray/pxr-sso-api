@@ -3,7 +3,6 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
-	"pxr-sso-api/internal/constants"
 	"pxr-sso-api/internal/controller/http/request"
 	"pxr-sso-api/internal/controller/http/response"
 )
@@ -31,17 +30,17 @@ func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
 //	@Description		Login
 //	@Tags				Auth
 //	@Id 				login
-//	@Accept				mpfd
+//	@Accept				json
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input formData LoginInput true "Input parameters for user login."
-//	@Success			200	{object}	server.dataResponse[LoginOutput]
-//	@Failure			500	{object}	server.dataResponse[LoginOutput]
+//	@Param				input formData LoginInput true "Input parameters for log in endpoint."
+//	@Success			200	{object}	LoginOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/login [post]
 func (r *Routes) login(c *gin.Context) {
 	input, err := request.FromForm[LoginInput](c)
 	if err != nil {
-		response.BadRequest(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -49,7 +48,7 @@ func (r *Routes) login(c *gin.Context) {
 
 	loginResponse, err := r.grpcClient.Login(c.Request.Context(), loginRequest)
 	if err != nil {
-		response.InternalServerError(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -66,18 +65,17 @@ func (r *Routes) login(c *gin.Context) {
 //	@Description		Register
 //	@Tags				Auth
 //	@Id 				register
-//	@Accept				mpfd
+//	@Accept				json
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input formData RegisterInput true "Input parameters for user register."
-//	@Param				avatar_file formData file false "Avatar file."
-//	@Success			200	{object}	server.dataResponse[RegisterOutput]
-//	@Failure			500	{object}	server.dataResponse[RegisterOutput]
+//	@Param				input formData RegisterInput true "Input parameters for register endpoint."
+//	@Success			200	{object}	RegisterOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/register [post]
 func (r *Routes) register(c *gin.Context) {
 	input, err := request.FromForm[RegisterInput](c)
 	if err != nil {
-		response.BadRequest(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -85,7 +83,7 @@ func (r *Routes) register(c *gin.Context) {
 
 	registerResponse, err := r.grpcClient.Register(c.Request.Context(), registerRequest)
 	if err != nil {
-		response.InternalServerError(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -96,10 +94,23 @@ func (r *Routes) register(c *gin.Context) {
 	response.Success(c, output)
 }
 
+// Consent.
+//
+//	@Summary			Consent
+//	@Description		Consent
+//	@Tags				Auth
+//	@Id 				consent
+//	@Accept				json
+//	@Produce			json
+//	@Param				input formData ConsentInput true "Input parameters for consent endpoint."
+//	@Success			200	{object}	ConsentOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/consent [post]
 func (r *Routes) consent(c *gin.Context) {
 	input, err := request.FromForm[ConsentInput](c)
 	if err != nil {
-		response.BadRequest(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -107,7 +118,7 @@ func (r *Routes) consent(c *gin.Context) {
 
 	consentResponse, err := r.grpcClient.Consent(c.Request.Context(), consentRequest)
 	if err != nil {
-		response.InternalServerError(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.InternalServerError(c, err.Error())
 		return
 	}
 

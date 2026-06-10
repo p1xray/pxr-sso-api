@@ -3,7 +3,6 @@ package oidc
 import (
 	"github.com/gin-gonic/gin"
 	oidcpb "github.com/p1xray/pxr-sso-protos/gen/go/oidc"
-	"pxr-sso-api/internal/constants"
 	"pxr-sso-api/internal/controller/http/request"
 	"pxr-sso-api/internal/controller/http/response"
 )
@@ -24,10 +23,21 @@ func InitRoutes(api *gin.RouterGroup, grpcClient oidcpb.OidcClient) {
 	}
 }
 
+// Authorize.
+//
+//	@Summary			Authorize
+//	@Description		Authorize
+//	@Tags				OIDC
+//	@Id 				authorize
+//	@Param				input query AuthorizeInput true "Input parameters for authorizer endpoint"
+//	@Success			302
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/oidc/authorize [get]
 func (r *Routes) authorize(c *gin.Context) {
 	input, err := request.FromQuery[AuthorizeInput](c)
 	if err != nil {
-		response.BadRequest(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -36,17 +46,30 @@ func (r *Routes) authorize(c *gin.Context) {
 
 	authorizeResponse, err := r.grpcClient.Authorize(c.Request.Context(), authorizeRequest)
 	if err != nil {
-		response.InternalServerError(c, constants.ErrorCodeInternalServerError, err.Error(), "")
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
 	response.Redirect(c, authorizeResponse.GetRedirectUri())
 }
 
+// Token.
+//
+//	@Summary			Token
+//	@Description		Token
+//	@Tags				OIDC
+//	@Id 				token
+//	@Accept				json
+//	@Produce			json
+//	@Param				input formData TokenInput true "Input parameters for token endpoint."
+//	@Success			200	{object}	TokenOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/oidc/token [post]
 func (r *Routes) token(c *gin.Context) {
 	input, err := request.FromForm[TokenInput](c)
 	if err != nil {
-		response.BadRequest(c, constants.ErrorCodeInvalidRequest, err.Error(), "")
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -54,7 +77,7 @@ func (r *Routes) token(c *gin.Context) {
 
 	tokenResponse, err := r.grpcClient.Token(c.Request.Context(), tokenRequest)
 	if err != nil {
-		response.InternalServerError(c, constants.ErrorCodeInternalServerError, err.Error(), "")
+		response.InternalServerError(c, err.Error())
 		return
 	}
 

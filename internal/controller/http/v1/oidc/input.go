@@ -11,7 +11,7 @@ type AuthorizeInput struct {
 	State               []string `form:"state"`
 	Audience            []string `form:"audience"`
 	Scope               []string `form:"scope"`
-}
+} //@name AuthorizeInput
 
 // TokenInput is output model of oauth exchange token request.
 type TokenInput struct {
@@ -20,4 +20,4 @@ type TokenInput struct {
 	Code         string `form:"code" binding:"required"`
 	RedirectURI  string `form:"redirect_uri" binding:"required"`
 	CodeVerifier string `form:"code_verifier" binding:"required"`
-}
+} //@name TokenInput
