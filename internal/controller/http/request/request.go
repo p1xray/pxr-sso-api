@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	sessionCookieNamePrefix = "pxr.sso.session:"
+	sessionCookieNamePrefix = "pxr.sso.session_"
 )
 
 var (
@@ -46,7 +46,9 @@ func FromForm[T any](c *gin.Context) (T, error) {
 
 func SessionFromCookie(c *gin.Context) []SessionCookie {
 	sessions := make([]SessionCookie, 0)
-	for _, cookie := range c.Request.Cookies() {
+
+	cookies := c.Request.Cookies()
+	for _, cookie := range cookies {
 		if strings.HasPrefix(cookie.Name, sessionCookieNamePrefix) {
 			session := SessionCookie{Name: cookie.Name, Value: cookie.Value}
 			sessions = append(sessions, session)

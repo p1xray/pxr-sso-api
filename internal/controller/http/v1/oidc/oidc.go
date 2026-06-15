@@ -59,7 +59,7 @@ func (r *Routes) authorize(c *gin.Context) {
 //	@Description		Token
 //	@Tags				OIDC
 //	@Id 				token
-//	@Accept				json
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
 //	@Param				input formData TokenInput true "Input parameters for token endpoint."
 //	@Success			200	{object}	TokenOutput

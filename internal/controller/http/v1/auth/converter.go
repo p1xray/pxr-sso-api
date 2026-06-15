@@ -1,6 +1,10 @@
 package auth
 
-import authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
+import (
+	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
+	authsessionpb "github.com/p1xray/pxr-sso-protos/gen/go/session"
+	"pxr-sso-api/internal/controller/http/request"
+)
 
 func toLoginRequest(input LoginInput) *authpb.LoginRequest {
 	loginRequest := &authpb.LoginRequest{
@@ -39,10 +43,17 @@ func toRegisterOutput(response *authpb.RegisterResponse) RegisterOutput {
 	return registerOutput
 }
 
-func toConsentRequest(input ConsentInput) *authpb.ConsentRequest {
+func toConsentRequest(input ConsentInput, sessionCookies []request.SessionCookie) *authpb.ConsentRequest {
+	sessions := make([]*authsessionpb.Cookie, 0)
+	for _, cookie := range sessionCookies {
+		session := &authsessionpb.Cookie{Name: cookie.Name, Value: cookie.Value}
+		sessions = append(sessions, session)
+	}
+
 	consentRequest := &authpb.ConsentRequest{
 		RequestUri: input.RequestURI,
 		Scopes:     input.Scopes,
+		Sessions:   sessions,
 	}
 
 	return consentRequest

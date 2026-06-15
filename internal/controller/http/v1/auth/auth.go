@@ -30,7 +30,7 @@ func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
 //	@Description		Login
 //	@Tags				Auth
 //	@Id 				login
-//	@Accept				json
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
 //	@Param				input formData LoginInput true "Input parameters for log in endpoint."
 //	@Success			200	{object}	LoginOutput
@@ -65,7 +65,7 @@ func (r *Routes) login(c *gin.Context) {
 //	@Description		Register
 //	@Tags				Auth
 //	@Id 				register
-//	@Accept				json
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
 //	@Param				input formData RegisterInput true "Input parameters for register endpoint."
 //	@Success			200	{object}	RegisterOutput
@@ -100,7 +100,7 @@ func (r *Routes) register(c *gin.Context) {
 //	@Description		Consent
 //	@Tags				Auth
 //	@Id 				consent
-//	@Accept				json
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
 //	@Param				input formData ConsentInput true "Input parameters for consent endpoint."
 //	@Success			200	{object}	ConsentOutput
@@ -114,7 +114,8 @@ func (r *Routes) consent(c *gin.Context) {
 		return
 	}
 
-	consentRequest := toConsentRequest(input)
+	sessions := request.SessionFromCookie(c)
+	consentRequest := toConsentRequest(input, sessions)
 
 	consentResponse, err := r.grpcClient.Consent(c.Request.Context(), consentRequest)
 	if err != nil {
