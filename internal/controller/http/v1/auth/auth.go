@@ -18,26 +18,26 @@ func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
 
 	auth := api.Group("/auth")
 	{
-		auth.POST("/login", r.login)
-		auth.POST("/register", r.register)
+		auth.POST("/signin", r.signin)
+		auth.POST("/signup", r.signup)
 		auth.POST("/consent", r.consent)
 	}
 }
 
-// Login.
+// Sign in.
 //
-//	@Summary			Login
-//	@Description		Login
+//	@Summary			Sign in
+//	@Description		Sign in
 //	@Tags				Auth
-//	@Id 				login
+//	@Id 				signin
 //	@Accept				x-www-form-urlencoded
 //	@Produce			json
-//	@Param				input formData LoginInput true "Input parameters for log in endpoint."
+//	@Param				input formData LoginInput true "Input parameters for sign in endpoint."
 //	@Success			200	{object}	LoginOutput
 //	@Failure			400	{object}	response.errorResponse
 //	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/login [post]
-func (r *Routes) login(c *gin.Context) {
+func (r *Routes) signin(c *gin.Context) {
 	input, err := request.FromForm[LoginInput](c)
 	if err != nil {
 		response.BadRequest(c, err.Error())
@@ -59,20 +59,20 @@ func (r *Routes) login(c *gin.Context) {
 	response.Success(c, output)
 }
 
-// Register.
+// Sign up.
 //
-//	@Summary			Register
-//	@Description		Register
+//	@Summary			Sign up
+//	@Description		Sign up
 //	@Tags				Auth
-//	@Id 				register
+//	@Id 				signup
 //	@Accept				x-www-form-urlencoded
 //	@Produce			json
-//	@Param				input formData RegisterInput true "Input parameters for register endpoint."
+//	@Param				input formData RegisterInput true "Input parameters for sign up endpoint."
 //	@Success			200	{object}	RegisterOutput
 //	@Failure			400	{object}	response.errorResponse
 //	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/register [post]
-func (r *Routes) register(c *gin.Context) {
+func (r *Routes) signup(c *gin.Context) {
 	input, err := request.FromForm[RegisterInput](c)
 	if err != nil {
 		response.BadRequest(c, err.Error())
