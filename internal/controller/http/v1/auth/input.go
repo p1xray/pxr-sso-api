@@ -15,7 +15,12 @@ type RegisterInput struct {
 	FullName   string `form:"full_name" binding:"required"`
 } //@name RegisterInput
 
-// ConsentInput is output model of confirm consent request.
+// ConsentCardInput is input model of consent card request.
+type ConsentCardInput struct {
+	RequestURI string `form:"request_uri" binding:"required"`
+} //@name ConsentCardInput
+
+// ConsentInput is input model of confirm consent request.
 type ConsentInput struct {
 	RequestURI string   `form:"request_uri" binding:"required"`
 	Scopes     []string `form:"scopes" binding:"required"`

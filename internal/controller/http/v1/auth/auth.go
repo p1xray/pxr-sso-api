@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
 	"pxr-sso-api/internal/controller/http/request"
@@ -21,6 +22,7 @@ func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
 		auth.POST("/signin", r.signin)
 		auth.POST("/signup", r.signup)
 		auth.POST("/signout", r.signout)
+		auth.GET("/consent", r.consentCard)
 		auth.POST("/consent", r.consent)
 	}
 }
@@ -110,6 +112,59 @@ func (r *Routes) signup(c *gin.Context) {
 //	@Router				/api/v1/auth/signout [post]
 func (r *Routes) signout(c *gin.Context) {
 	response.Success(c, true)
+}
+
+// Consent card.
+//
+//	@Summary			Consent card
+//	@Description		Consent card
+//	@Tags				Auth
+//	@Id 				consentCard
+//	@Produce			json
+//	@Param				input query ConsentCardInput true "Input parameters for consent card endpoint."
+//	@Success			200	{object}	ConsentCardOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/consent [get]
+func (r *Routes) consentCard(c *gin.Context) {
+	input, err := request.FromQuery[ConsentCardInput](c)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+	fmt.Printf("input: %+v\n", input)
+
+	// TODO: replace to call gRPC method
+	mockOutput := ConsentCardOutput{
+		Scopes: []ScopeOutput{
+			{
+				Code:        "profile",
+				Name:        "Profile information",
+				Description: "Your nickname, full name, profile picture, birthdate, gender, etc.",
+				IsGranted:   true,
+			},
+			{
+				Code:        "email",
+				Name:        "E-mail",
+				Description: "Your email address",
+				IsGranted:   false,
+			},
+			{
+				Code:        "phone",
+				Name:        "Phone number",
+				Description: "Your phone number",
+				IsGranted:   false,
+			},
+			{
+				Code:        "address",
+				Name:        "Address",
+				Description: "Your physical address",
+				IsGranted:   false,
+			},
+		},
+	}
+
+	response.Success(c, mockOutput)
 }
 
 // Consent.
