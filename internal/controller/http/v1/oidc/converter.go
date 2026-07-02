@@ -6,7 +6,7 @@ import (
 	"pxr-sso-api/internal/controller/http/request"
 )
 
-func toAuthorizeRequest(input AuthorizeInput, sessionCookies []request.SessionCookie) *oidcpb.AuthorizeRequest {
+func toAuthorizeRequest(input AuthorizeInput, audience string, sessionCookies []request.SessionCookie) *oidcpb.AuthorizeRequest {
 	sessions := make([]*authsessionpb.Cookie, 0)
 	for _, cookie := range sessionCookies {
 		session := &authsessionpb.Cookie{Name: cookie.Name, Value: cookie.Value}
@@ -21,7 +21,7 @@ func toAuthorizeRequest(input AuthorizeInput, sessionCookies []request.SessionCo
 		CodeChallenge:       input.CodeChallenge,
 		CodeChallengeMethod: input.CodeChallengeMethod,
 		State:               input.State,
-		Audience:            input.Audience,
+		Audience:            []string{audience},
 		Scope:               input.Scope,
 		Sessions:            sessions,
 	}

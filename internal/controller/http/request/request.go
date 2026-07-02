@@ -58,6 +58,10 @@ func SessionFromCookie(c *gin.Context) []SessionCookie {
 	return sessions
 }
 
+func Referer(c *gin.Context) string {
+	return strings.Trim(c.Request.Referer(), "/")
+}
+
 func SubjectFromToken(c *gin.Context) (int64, error) {
 	claims, err := getTokenClaims(c)
 	if err != nil {

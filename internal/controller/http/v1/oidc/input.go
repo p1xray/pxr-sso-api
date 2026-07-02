@@ -9,7 +9,6 @@ type AuthorizeInput struct {
 	CodeChallenge       []string `form:"code_challenge"`
 	CodeChallengeMethod []string `form:"code_challenge_method"`
 	State               []string `form:"state"`
-	Audience            []string `form:"audience"`
 	Scope               []string `form:"scope"`
 } //@name AuthorizeInput
 

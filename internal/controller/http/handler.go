@@ -31,6 +31,7 @@ func (h *handler) Routes() http.Handler {
 	router := gin.Default()
 
 	config := cors.DefaultConfig()
+	config.AllowAllOrigins = false
 	config.AllowOrigins = []string{"http://localhost:3000"}
 	config.AllowCredentials = true
 	config.MaxAge = 12 * time.Hour

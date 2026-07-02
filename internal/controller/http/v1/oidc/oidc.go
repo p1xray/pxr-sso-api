@@ -41,8 +41,9 @@ func (r *Routes) authorize(c *gin.Context) {
 		return
 	}
 
+	referer := request.Referer(c)
 	sessions := request.SessionFromCookie(c)
-	authorizeRequest := toAuthorizeRequest(input, sessions)
+	authorizeRequest := toAuthorizeRequest(input, referer, sessions)
 
 	authorizeResponse, err := r.grpcClient.Authorize(c.Request.Context(), authorizeRequest)
 	if err != nil {
