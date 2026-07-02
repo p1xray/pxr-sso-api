@@ -20,6 +20,7 @@ func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
 	{
 		auth.POST("/signin", r.signin)
 		auth.POST("/signup", r.signup)
+		auth.POST("/signout", r.signout)
 		auth.POST("/consent", r.consent)
 	}
 }
@@ -92,6 +93,23 @@ func (r *Routes) signup(c *gin.Context) {
 
 	output := toRegisterOutput(registerResponse)
 	response.Success(c, output)
+}
+
+// Sign out.
+//
+//	@Summary			Sign out
+//	@Description		Sign out
+//	@Tags				Auth
+//	@Id 				signout
+//	@Accept				x-www-form-urlencoded
+//	@Produce			json
+//	@Param				input formData SignoutInput true "Input parameters for sign out endpoint."
+//	@Success			200	{object}	SignoutOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/signout [post]
+func (r *Routes) signout(c *gin.Context) {
+	response.Success(c, true)
 }
 
 // Consent.
