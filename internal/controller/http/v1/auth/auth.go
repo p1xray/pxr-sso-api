@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
 	"pxr-sso-api/internal/controller/http/request"
@@ -48,7 +47,6 @@ func (r *Routes) signin(c *gin.Context) {
 	}
 
 	loginRequest := toLoginRequest(input)
-
 	loginResponse, err := r.grpcClient.Login(c.Request.Context(), loginRequest)
 	if err != nil {
 		response.InternalServerError(c, err.Error())
@@ -83,7 +81,6 @@ func (r *Routes) signup(c *gin.Context) {
 	}
 
 	registerRequest := toRegisterRequest(input)
-
 	registerResponse, err := r.grpcClient.Register(c.Request.Context(), registerRequest)
 	if err != nil {
 		response.InternalServerError(c, err.Error())
@@ -132,39 +129,16 @@ func (r *Routes) consentCard(c *gin.Context) {
 		response.BadRequest(c, err.Error())
 		return
 	}
-	fmt.Printf("input: %+v\n", input)
 
-	// TODO: replace to call gRPC method
-	mockOutput := ConsentCardOutput{
-		Scopes: []ScopeOutput{
-			{
-				Code:        "profile",
-				Name:        "Profile information",
-				Description: "Your nickname, full name, profile picture, birthdate, gender, etc.",
-				IsGranted:   true,
-			},
-			{
-				Code:        "email",
-				Name:        "E-mail",
-				Description: "Your email address",
-				IsGranted:   false,
-			},
-			{
-				Code:        "phone",
-				Name:        "Phone number",
-				Description: "Your phone number",
-				IsGranted:   false,
-			},
-			{
-				Code:        "address",
-				Name:        "Address",
-				Description: "Your physical address",
-				IsGranted:   false,
-			},
-		},
+	consentCardRequest := toConsentCardRequest(input)
+	consentCardResponse, err := r.grpcClient.GetConsentCard(c.Request.Context(), consentCardRequest)
+	if err != nil {
+		response.InternalServerError(c, err.Error())
+		return
 	}
 
-	response.Success(c, mockOutput)
+	output := toConsentCardOutput(consentCardResponse)
+	response.Success(c, output)
 }
 
 // Consent.

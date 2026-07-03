@@ -66,3 +66,26 @@ func toConsentOutput(response *authpb.ConsentResponse) ConsentOutput {
 
 	return consentOutput
 }
+
+func toConsentCardRequest(input ConsentCardInput) *authpb.GetConsentCardRequest {
+	return &authpb.GetConsentCardRequest{
+		RequestUri: input.RequestURI,
+	}
+}
+
+func toConsentCardOutput(response *authpb.GetConsentCardResponse) ConsentCardOutput {
+	scopes := make([]ScopeOutput, len(response.GetScopes()))
+	for i, scope := range response.GetScopes() {
+		scopeOutput := ScopeOutput{
+			Code:        scope.Code,
+			Name:        scope.Name,
+			Description: scope.Description,
+			IsGranted:   scope.IsGranted,
+		}
+
+		scopes[i] = scopeOutput
+	}
+
+	output := ConsentCardOutput{Scopes: scopes}
+	return output
+}
