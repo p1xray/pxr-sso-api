@@ -22,6 +22,6 @@ type ConsentCardInput struct {
 
 // ConsentInput is input model of confirm consent request.
 type ConsentInput struct {
-	RequestURI string   `form:"request_uri" binding:"required"`
-	Scopes     []string `form:"scopes" binding:"required"`
+	RequestURI string `form:"request_uri" binding:"required"`
+	Scopes     string `form:"scopes" binding:"required"`
 } //@name ConsentInput

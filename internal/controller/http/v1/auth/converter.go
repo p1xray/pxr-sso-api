@@ -4,6 +4,7 @@ import (
 	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
 	authsessionpb "github.com/p1xray/pxr-sso-protos/gen/go/session"
 	"pxr-sso-api/internal/controller/http/request"
+	"strings"
 )
 
 func toLoginRequest(input LoginInput) *authpb.LoginRequest {
@@ -52,7 +53,7 @@ func toConsentRequest(input ConsentInput, sessionCookies []request.SessionCookie
 
 	consentRequest := &authpb.ConsentRequest{
 		RequestUri: input.RequestURI,
-		Scopes:     input.Scopes,
+		Scopes:     strings.Split(input.Scopes, ","),
 		Sessions:   sessions,
 	}
 
