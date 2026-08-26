@@ -2,226 +2,174 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/golang/protobuf/ptypes/wrappers"
-	ssopb "github.com/p1xray/pxr-sso-protos/gen/go/sso"
-	"google.golang.org/protobuf/types/known/timestamppb"
-	"pxr-sso-api/internal/server"
+	authpb "github.com/p1xray/pxr-sso-protos/gen/go/auth"
+	"pxr-sso-api/internal/controller/http/request"
+	"pxr-sso-api/internal/controller/http/response"
 )
 
 // Routes provides routes for authentication.
 type Routes struct {
-	grpcAuthClient ssopb.SsoClient
+	grpcClient authpb.AuthClient
 }
 
 // InitRoutes initializes the routes for authentication.
-func InitRoutes(api *gin.RouterGroup, grpcAuthClient ssopb.SsoClient) {
-	ar := &Routes{grpcAuthClient: grpcAuthClient}
+func InitRoutes(api *gin.RouterGroup, grpcClient authpb.AuthClient) {
+	r := &Routes{grpcClient: grpcClient}
 
 	auth := api.Group("/auth")
 	{
-		auth.POST("/login", ar.login)
-		auth.POST("/register", ar.register)
-		auth.POST("/refresh-tokens", ar.refreshTokens)
-		auth.POST("/logout", ar.logout)
+		auth.POST("/signin", r.signin)
+		auth.POST("/signup", r.signup)
+		auth.POST("/signout", r.signout)
+		auth.GET("/consent", r.consentCard)
+		auth.POST("/consent", r.consent)
 	}
 }
 
-// Login.
+// Sign in.
 //
-//	@Summary			Login
-//	@Description		Login
+//	@Summary			Sign in
+//	@Description		Sign in
 //	@Tags				Auth
-//	@Id 				login
-//	@Accept				mpfd
+//	@Id 				signin
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input formData LoginInput true "Input parameters for user login."
-//	@Success			200	{object}	server.dataResponse[LoginOutput]
-//	@Failure			500	{object}	server.dataResponse[LoginOutput]
+//	@Param				input formData LoginInput true "Input parameters for sign in endpoint."
+//	@Success			200	{object}	LoginOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/login [post]
-func (a *Routes) login(c *gin.Context) {
-	inp, err := server.GetInputFromForm[LoginInput](c)
+func (r *Routes) signin(c *gin.Context) {
+	input, err := request.FromForm[LoginInput](c)
 	if err != nil {
-		server.ErrorResponse[LoginOutput](c, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
-	grpcLoginRequest := &ssopb.LoginRequest{
-		Username:    inp.Username,
-		Password:    inp.Password,
-		ClientCode:  inp.ClientCode,
-		UserAgent:   server.GetUserAgent(c),
-		Fingerprint: server.GetFingerprint(c),
-		Issuer:      server.GetHost(c),
-	}
-
-	grpcLoginResponse, err := a.grpcAuthClient.Login(
-		c.Request.Context(),
-		grpcLoginRequest)
+	loginRequest := toLoginRequest(input)
+	loginResponse, err := r.grpcClient.Login(c.Request.Context(), loginRequest)
 	if err != nil {
-		// TODO: check error from gRPC server and return invalid credentials error
-
-		server.ErrorResponse[LoginOutput](c, err.Error())
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
-	response := &LoginOutput{
-		AccessToken:  grpcLoginResponse.GetAccessToken(),
-		RefreshToken: grpcLoginResponse.GetRefreshToken(),
-	}
+	session := loginResponse.GetSession()
+	response.SetSessionCookie(c, session.GetName(), session.GetValue())
 
-	server.SuccessResponse(c, response)
+	output := toLoginOutput(loginResponse)
+	response.Success(c, output)
 }
 
-// Register.
+// Sign up.
 //
-//	@Summary			Register
-//	@Description		Register
+//	@Summary			Sign up
+//	@Description		Sign up
 //	@Tags				Auth
-//	@Id 				register
-//	@Accept				mpfd
+//	@Id 				signup
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input formData RegisterInput true "Input parameters for user register."
-//	@Param				avatar_file formData file false "Avatar file."
-//	@Success			200	{object}	server.dataResponse[RegisterOutput]
-//	@Failure			500	{object}	server.dataResponse[RegisterOutput]
+//	@Param				input formData RegisterInput true "Input parameters for sign up endpoint."
+//	@Success			200	{object}	RegisterOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
 //	@Router				/api/v1/auth/register [post]
-func (a *Routes) register(c *gin.Context) {
-	inp, err := server.GetInputFromForm[RegisterInput](c)
+func (r *Routes) signup(c *gin.Context) {
+	input, err := request.FromForm[RegisterInput](c)
 	if err != nil {
-		server.ErrorResponse[RegisterOutput](c, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
-	var dateOfBirthPb *timestamppb.Timestamp
-	if inp.DateOfBirth != nil {
-		dateOfBirthPb = timestamppb.New(*inp.DateOfBirth)
-	}
-
-	var genderPb ssopb.Gender
-	if inp.Gender != nil {
-		genderPb = ssopb.Gender(*inp.Gender)
-	}
-
-	var avatarFileKeyPb *wrappers.StringValue
-	if inp.AvatarFile != nil {
-		// TODO: save file to files storage.
-		avatarFileKeyPb = &wrappers.StringValue{Value: inp.AvatarFile.Filename}
-	}
-
-	grpcRegisterRequest := &ssopb.RegisterRequest{
-		Username:      inp.Username,
-		Password:      inp.Password,
-		ClientCode:    inp.ClientCode,
-		Fio:           inp.Fio,
-		DateOfBirth:   dateOfBirthPb,
-		Gender:        genderPb,
-		AvatarFileKey: avatarFileKeyPb,
-		UserAgent:     server.GetUserAgent(c),
-		Fingerprint:   server.GetFingerprint(c),
-		Issuer:        server.GetHost(c),
-	}
-
-	grpcRegisterResponse, err := a.grpcAuthClient.Register(
-		c.Request.Context(),
-		grpcRegisterRequest)
+	registerRequest := toRegisterRequest(input)
+	registerResponse, err := r.grpcClient.Register(c.Request.Context(), registerRequest)
 	if err != nil {
-		// TODO: check error from gRPC server and return invalid credentials error
-
-		server.ErrorResponse[RegisterOutput](c, err.Error())
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
-	response := &RegisterOutput{
-		AccessToken:  grpcRegisterResponse.GetAccessToken(),
-		RefreshToken: grpcRegisterResponse.GetRefreshToken(),
-	}
+	session := registerResponse.GetSession()
+	response.SetSessionCookie(c, session.GetName(), session.GetValue())
 
-	server.SuccessResponse(c, response)
+	output := toRegisterOutput(registerResponse)
+	response.Success(c, output)
 }
 
-// Refresh tokens.
+// Sign out.
 //
-//	@Summary			Refresh tokens
-//	@Description		Refresh tokens
+//	@Summary			Sign out
+//	@Description		Sign out
 //	@Tags				Auth
-//	@Id 				refreshTokens
-//	@Accept				json
+//	@Id 				signout
+//	@Accept				x-www-form-urlencoded
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input body RefreshTokensInput true "Input parameters for refresh tokens."
-//	@Success			200	{object}	server.dataResponse[RefreshTokensOutput]
-//	@Failure			500	{object}	server.dataResponse[RefreshTokensOutput]
-//	@Router				/api/v1/auth/refresh-tokens [post]
-func (a *Routes) refreshTokens(c *gin.Context) {
-	inp, err := server.GetInputFromBody[RefreshTokensInput](c)
-	if err != nil {
-		server.ErrorResponse[RefreshTokensOutput](c, err.Error())
-		return
-	}
-
-	grpcRefreshTokensRequest := &ssopb.RefreshTokensRequest{
-		RefreshToken: inp.RefreshToken,
-		ClientCode:   inp.ClientCode,
-		UserAgent:    server.GetUserAgent(c),
-		Fingerprint:  server.GetFingerprint(c),
-		Issuer:       server.GetHost(c),
-	}
-
-	grpcRefreshTokensResponse, err := a.grpcAuthClient.RefreshTokens(
-		c.Request.Context(),
-		grpcRefreshTokensRequest)
-	if err != nil {
-		// TODO: check error from gRPC server and return invalid credentials error
-
-		server.ErrorResponse[RefreshTokensOutput](c, err.Error())
-		return
-	}
-
-	response := &RefreshTokensOutput{
-		AccessToken:  grpcRefreshTokensResponse.GetAccessToken(),
-		RefreshToken: grpcRefreshTokensResponse.GetRefreshToken(),
-	}
-
-	server.SuccessResponse(c, response)
+//	@Param				input formData SignoutInput true "Input parameters for sign out endpoint."
+//	@Success			200	{object}	SignoutOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/signout [post]
+func (r *Routes) signout(c *gin.Context) {
+	response.Success(c, true)
 }
 
-// Logout.
+// Consent card.
 //
-//	@Summary			Logout
-//	@Description		Logout
+//	@Summary			Consent card
+//	@Description		Consent card
 //	@Tags				Auth
-//	@Id 				logout
-//	@Accept				json
+//	@Id 				consentCard
 //	@Produce			json
-//	@Param        		X-Fingerprint	  header    string    true   	"User browser fingerprint."
-//	@Param				input body LogoutInput true "Input parameters for user logout."
-//	@Success			200	{object}	server.dataResponse[bool]
-//	@Failure			500	{object}	server.dataResponse[bool]
-//	@Router				/api/v1/auth/logout [post]
-func (a *Routes) logout(c *gin.Context) {
-	inp, err := server.GetInputFromBody[LogoutInput](c)
+//	@Param				input query ConsentCardInput true "Input parameters for consent card endpoint."
+//	@Success			200	{object}	ConsentCardOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/consent [get]
+func (r *Routes) consentCard(c *gin.Context) {
+	input, err := request.FromQuery[ConsentCardInput](c)
 	if err != nil {
-		server.ErrorResponse[bool](c, err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
-	grpcLogoutRequest := &ssopb.LogoutRequest{
-		RefreshToken: inp.RefreshToken,
-		ClientCode:   inp.ClientCode,
-	}
-
-	grpcLogoutResponse, err := a.grpcAuthClient.Logout(
-		c.Request.Context(),
-		grpcLogoutRequest)
+	consentCardRequest := toConsentCardRequest(input)
+	consentCardResponse, err := r.grpcClient.GetConsentCard(c.Request.Context(), consentCardRequest)
 	if err != nil {
-		// TODO: check error from gRPC server and return invalid credentials error
-
-		server.ErrorResponse[bool](c, err.Error())
+		response.InternalServerError(c, err.Error())
 		return
 	}
 
-	success := grpcLogoutResponse.GetSuccess()
-	server.SuccessResponse[bool](c, &success)
+	output := toConsentCardOutput(consentCardResponse)
+	response.Success(c, output)
+}
+
+// Consent.
+//
+//	@Summary			Consent
+//	@Description		Consent
+//	@Tags				Auth
+//	@Id 				consent
+//	@Accept				x-www-form-urlencoded
+//	@Produce			json
+//	@Param				input formData ConsentInput true "Input parameters for consent endpoint."
+//	@Success			200	{object}	ConsentOutput
+//	@Failure			400	{object}	response.errorResponse
+//	@Failure			500	{object}	response.errorResponse
+//	@Router				/api/v1/auth/consent [post]
+func (r *Routes) consent(c *gin.Context) {
+	input, err := request.FromForm[ConsentInput](c)
+	if err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+
+	sessions := request.SessionFromCookie(c)
+	consentRequest := toConsentRequest(input, sessions)
+
+	consentResponse, err := r.grpcClient.Consent(c.Request.Context(), consentRequest)
+	if err != nil {
+		response.InternalServerError(c, err.Error())
+		return
+	}
+
+	output := toConsentOutput(consentResponse)
+	response.Success(c, output)
 }
