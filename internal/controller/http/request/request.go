@@ -1,0 +1,103 @@
+package request
+
+import (
+	"errors"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	jwtmiddleware "github.com/p1xray/pxr-sso/pkg/jwt"
+	jwtclaims "github.com/p1xray/pxr-sso/pkg/jwt/claims"
+	"strconv"
+	"strings"
+)
+
+const (
+	sessionCookieNamePrefix = "pxr.sso.session_"
+)
+
+var (
+	errInvalidInputQuery     = errors.New("invalid input query")
+	errInvalidInputForm      = errors.New("invalid input form")
+	errGetTokenClaims        = errors.New("error getting token claims from request")
+	errConvertStringToNumber = errors.New("error converting string value to number")
+)
+
+type SessionCookie struct {
+	Name  string
+	Value string
+}
+
+func FromQuery[T any](c *gin.Context) (T, error) {
+	var inp T
+	if err := c.BindQuery(&inp); err != nil {
+		return inp, fmt.Errorf("%w: %w", errInvalidInputQuery, err)
+	}
+
+	return inp, nil
+}
+
+func FromForm[T any](c *gin.Context) (T, error) {
+	var inp T
+	if err := c.Bind(&inp); err != nil {
+		return inp, fmt.Errorf("%w: %w", errInvalidInputForm, err)
+	}
+
+	return inp, nil
+}
+
+func SessionFromCookie(c *gin.Context) []SessionCookie {
+	sessions := make([]SessionCookie, 0)
+
+	cookies := c.Request.Cookies()
+	for _, cookie := range cookies {
+		if strings.HasPrefix(cookie.Name, sessionCookieNamePrefix) {
+			session := SessionCookie{Name: cookie.Name, Value: cookie.Value}
+			sessions = append(sessions, session)
+		}
+	}
+
+	return sessions
+}
+
+func Referer(c *gin.Context) string {
+	return strings.Trim(c.Request.Referer(), "/")
+}
+
+func SubjectFromToken(c *gin.Context) (int64, error) {
+	claims, err := getTokenClaims(c)
+	if err != nil {
+		return 0, err
+	}
+
+	userID, err := strconv.ParseInt(claims.RegisteredClaims.Subject, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", errConvertStringToNumber, err)
+	}
+
+	return userID, nil
+}
+
+func UserHasScope(c *gin.Context, expectedScope string) (bool, error) {
+	claims, err := getTokenClaims(c)
+	if err != nil {
+		return false, err
+	}
+
+	scopes := strings.Split(claims.RegisteredClaims.Scope, " ")
+	for _, scope := range scopes {
+		if scope == expectedScope {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func getTokenClaims(c *gin.Context) (jwtclaims.ValidatedClaims, error) {
+	ctx := c.Request.Context()
+	claims, ok := ctx.Value(jwtmiddleware.ContextKey{}).(jwtclaims.ValidatedClaims)
+	if !ok {
+		return jwtclaims.ValidatedClaims{}, errGetTokenClaims
+	}
+
+	return claims, nil
+}
